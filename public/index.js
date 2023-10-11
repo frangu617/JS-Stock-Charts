@@ -1,25 +1,16 @@
 async function main() {
 
-    // let response = await fetch('mockData.js');
+    const response = await fetch('https://api.twelvedata.com/time_series?apikey=1af71d652d0a4e2293b7c4feac49b873&interval=10min&format=JSON&symbol=GME,DIS,MSFT,BNTX');
+    let result = await response.json();
+    const { GME, DIS, MSFT, BNTX } = result;
+    let stocks = [GME, DIS, MSFT, BNTX]
+    stocks.forEach(stock => stock.values.reverse());
+    stocks.map(stock => {
+        getAveragePrice(stock.meta.symbol);
+    })
     const timeChartCanvas = document.querySelector('#time-chart');
     const highestPriceChartCanvas = document.querySelector('#highest-price-chart');
     const averagePriceChartCanvas = document.querySelector('#average-price-chart');
-
-    // let data  = await response.json();
-
-    // let GME = response.GME;
-    // let DIS = response.DIS;
-    // let MSFT = response.MSFT;
-    // let BNTX = response.BNTX;
-    const { GME, DIS, MSFT, BNTX } = mockData;
-
-
-    let stocks = [GME, DIS, MSFT, BNTX]
-
-    stocks.forEach(stock => stock.values.reverse());
-
-
-
     new Chart(timeChartCanvas.getContext('2d'), {
         type: 'line',
         data: {
@@ -33,7 +24,6 @@ async function main() {
             }))
         },
     });
-
     new Chart(highestPriceChartCanvas.getContext('2d'), {
         type: 'bar',
         data: {
@@ -44,11 +34,22 @@ async function main() {
                 backgroundColor: [getColor(GME.meta.symbol), getColor(MSFT.meta.symbol), getColor(DIS.meta.symbol), getColor(BNTX.meta.symbol)],
                 borderColor: [getColor(GME.meta.symbol), getColor(MSFT.meta.symbol), getColor(DIS.meta.symbol), getColor(BNTX.meta.symbol)],
                 borderWidth: 1
-            }]            
+            }]
         },
     });
-
-
+    new Chart(averagePriceChartCanvas.getContext('2d'), {
+        type: 'pie',
+        data: {
+            labels: [GME.meta.symbol, MSFT.meta.symbol, DIS.meta.symbol, BNTX.meta.symbol],
+            datasets: [{
+                label: 'average price',
+                data: [getAveragePrice(GME.meta.symbol), getAveragePrice(MSFT.meta.symbol), getAveragePrice(DIS.meta.symbol), getAveragePrice(BNTX.meta.symbol)],
+                backgroundColor: [getColor(GME.meta.symbol), getColor(MSFT.meta.symbol), getColor(DIS.meta.symbol), getColor(BNTX.meta.symbol)],
+                borderColor: [getColor(GME.meta.symbol), getColor(MSFT.meta.symbol), getColor(DIS.meta.symbol), getColor(BNTX.meta.symbol)],
+                borderWidth: 1
+            }]
+        },
+    })
     function getColor(stock) {
         if (stock === "GME") {
             return 'rgba(61, 161, 61, 0.7)'
@@ -63,14 +64,13 @@ async function main() {
             return 'rgba(166, 43, 158, 0.7)'
         }
     }
-
     function getHighestPrice(stock) {
         let highest = 0
         if (stock === "GME") {
             for (let i = 0; i < GME.values.length; i++) {
                 if (GME.values[i].high > highest) {
                     highest = GME.values[i].high;
-                    // console.log(highest);
+
                 }
             }
         }
@@ -80,7 +80,6 @@ async function main() {
                     highest = MSFT.values[i].high;
                 }
             }
-            ;
         }
         else if (stock === "DIS") {
             for (let i = 0; i < DIS.values.length; i++) {
@@ -95,19 +94,36 @@ async function main() {
                     highest = BNTX.values[i].high;
                 }
             }
-
         }
-        console.log(highest);
         return highest;
-
-        // let arrOfHighests = [gmeHighest, msftHighest, disHighest, bntxHighest];
-        // return arrOfHighests;
     }
-    // xhr.open("GET", "https://api.twelvedata.com/time_series?apikey=1af71d652d0a4e2293b7c4feac49b873&interval=1min&outputsize=12&timezone=exchange&format=JSON");
-
-
-
+    function getAveragePrice(stock) {
+        let sum = 0
+        if (stock === "GME") {
+            for (let i = 0; i < GME.values.length; i++) {
+                sum += Number(GME.values[i].high);
+            }
+            return Number(sum / GME.values.length);
+        }
+        else if (stock === "MSFT") {
+            for (let i = 0; i < MSFT.values.length; i++) {
+                sum += Number(MSFT.values[i].high);
+            }
+            return Number(sum / MSFT.values.length);
+        }
+        else if (stock === "DIS") {
+            for (let i = 0; i < DIS.values.length; i++) {
+                sum += Number(DIS.values[i].high);
+            }
+            return Number(sum / DIS.values.length);
+        }
+        else if (stock === "BNTX") {
+            for (let i = 0; i < BNTX.values.length; i++) {
+                sum += Number(BNTX.values[i].high);
+            }
+            return Number(sum / BNTX.values.length);
+        }
+    }
 }
 
 main()
-console.log(Chart);
